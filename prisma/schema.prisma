@@ -1,0 +1,106 @@
+// ProLink database schema (Prisma ORM)
+// To use PostgreSQL instead of SQLite: change provider to "postgresql"
+// and set DATABASE_URL in .env to your PostgreSQL connection string.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          String         // "seeker" | "employer"
+  company       String         @default("")
+  bio           String         @default("")
+  location      String         @default("")
+  birthdate     String         @default("")
+  sex           String         @default("")
+  skills        String         @default("")
+  photo         String         @default("")
+  createdAt     DateTime       @default(now())
+  jobs          Job[]
+  applications  Application[]
+  savedJobs     SavedJob[]
+  notifications Notification[]
+}
+
+model Job {
+  id           Int           @id @default(autoincrement())
+  employerId   Int?          // null for the sample jobs
+  employer     User?         @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  company      String
+  title        String
+  location     String
+  type         String        // Full-time | Part-time | Internship | Contract
+  salary       String        @default("")
+  description  String
+  requirements String
+  deadline     String        @default("")   // YYYY-MM-DD or empty
+  closed       Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  applications Application[]
+  saves        SavedJob[]
+}
+
+model Application {
+  id            Int                   @id @default(autoincrement())
+  jobId         Int
+  job           Job                   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId        Int
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status        String                @default("Pending") // Pending | Reviewing | Accepted | Rejected
+  note          String                @default("")        // private employer note
+  createdAt     DateTime              @default(now())
+  documents     ApplicationDocument[]
+  events        ApplicationEvent[]
+  notifications Notification[]
+
+  @@unique([jobId, userId])
+}
+
+model ApplicationDocument {
+  id            Int         @id @default(autoincrement())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  name          String
+  type          String
+  size          Int
+  data          String      // data URL (base64)
+}
+
+model ApplicationEvent {
+  id            Int         @id @default(autoincrement())
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        String
+  msg           String      @default("")
+  createdAt     DateTime    @default(now())
+}
+
+model SavedJob {
+  userId Int
+  jobId  Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([userId, jobId])
+}
+
+model Notification {
+  id            Int          @id @default(autoincrement())
+  userId        Int
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId Int?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  text          String
+  msg           String       @default("")
+  read          Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+}

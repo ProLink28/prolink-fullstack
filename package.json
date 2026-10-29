@@ -1,0 +1,28 @@
+{
+  "name": "prolink",
+  "version": "1.0.0",
+  "description": "ProLink: web-based professional networking and job matching platform",
+  "main": "server/index.js",
+  "scripts": {
+    "setup": "prisma generate && prisma db push && node prisma/seed.js",
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}
